@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Assignment 5 - JavaScript DOM</title>
+  <style>
+* { box-sizing: border-box; }
+
+body {
+  font-family: Arial, sans-serif;
+  background: #f2f4f8;
+  color: #222;
+  margin: 0;
+  padding: 20px;
+}
+
+.container {
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+h1 { text-align: center; }
+
+.card {
+  background: #fff;
+  padding: 20px;
+  margin-bottom: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+label { display: block; margin: 10px 0 4px; }
+
+input {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #bbb;
+  border-radius: 4px;
+}
+
+button {
+  margin-top: 12px;
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  background: #2563eb;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:hover { opacity: 0.9; }
+button.danger { background: #dc2626; }
+
+.buttons { display: flex; gap: 10px; }
+
+#hobbyList li { padding: 4px 0; }
+
+.message { min-height: 20px; font-weight: bold; }
+.message.error { color: #dc2626; }
+.message.success { color: #16a34a; }
+</style>
+</head>
+<body>
+  <main class="container">
+    <h1>Assignment #5: JavaScript Basics</h1>
+
+    <!-- Part 1: profile output -->
+    <section class="card">
+      <h2>Profile</h2>
+      <p>Name: <span id="profileName"></span></p>
+      <p>Birth year: <span id="profileBirthYear"></span></p>
+      <p>Developer: <span id="profileDev"></span></p>
+      <p>Age: <span id="profileAge"></span></p>
+      <p>Age in months: <span id="profileMonths"></span></p>
+      <p>Hobbies count: <span id="profileHobbies"></span></p>
+    </section>
+
+    <!-- Part 2: form -->
+    <section class="card">
+      <h2>Create / Update Profile</h2>
+      <form id="profileForm">
+        <label for="username">Username</label>
+        <input type="text" id="username" placeholder="Enter your name">
+
+        <label for="birthYear">Birth Year</label>
+        <input type="number" id="birthYear" placeholder="e.g. 2005">
+
+        <button type="submit" id="profileBtn">Create / Update Profile</button>
+      </form>
+      <p id="formMessage" class="message"></p>
+    </section>
+
+    <!-- Part 3: list -->
+    <section class="card">
+      <h2>My Hobbies</h2>
+      <ul id="hobbyList"></ul>
+
+      <input type="text" id="newItem" placeholder="New hobby / task">
+      <div class="buttons">
+        <button type="button" id="addBtn">Add Item</button>
+        <button type="button" id="removeBtn" class="danger">Remove Item</button>
+      </div>
+      <p id="listMessage" class="message"></p>
+    </section>
+  </main>
+
+  <script>
+// ===== Part 1: Profile object, data types, arithmetic =====
+
+// Task 1: const object with different data types
+const userProfile = {
+  name: "Your Name",                        // string
+  birthYear: 2005,                          // number
+  isDeveloper: true,                        // boolean
+  hobbies: ["Coding", "Music", "Football"]  // array
+};
+
+// Task 2: arithmetic calculations
+function calculateAge(birthYear) {
+  const currentYear = new Date().getFullYear();
+  return currentYear - birthYear;
+}
+
+function calculateMonths(birthYear) {
+  return calculateAge(birthYear) * 12;
+}
+
+// DOM references
+const nameEl = document.getElementById("profileName");
+const birthYearEl = document.getElementById("profileBirthYear");
+const devEl = document.getElementById("profileDev");
+const ageEl = document.getElementById("profileAge");
+const monthsEl = document.getElementById("profileMonths");
+const hobbiesEl = document.getElementById("profileHobbies");
+
+// Shows the current profile on the page and in the console
+function renderProfile() {
+  const age = calculateAge(userProfile.birthYear);
+  const months = calculateMonths(userProfile.birthYear);
+
+  nameEl.textContent = userProfile.name;
+  birthYearEl.textContent = userProfile.birthYear;
+  devEl.textContent = userProfile.isDeveloper ? "Yes" : "No";
+  ageEl.textContent = age;
+  monthsEl.textContent = months;
+  hobbiesEl.textContent = userProfile.hobbies.length;
+
+  console.log("Profile:", userProfile);
+  console.log("Age:", age, "| Months:", months, "| Hobbies:", userProfile.hobbies.length);
+}
+
+// ===== Part 2: Form input and events =====
+
+const form = document.getElementById("profileForm");
+const usernameInput = document.getElementById("username");
+const birthYearInput = document.getElementById("birthYear");
+const formMessage = document.getElementById("formMessage");
+
+// Task 4: submit event listener updates userProfile
+form.addEventListener("submit", function (event) {
+  event.preventDefault();
+
+  const username = usernameInput.value.trim();
+  const birthYear = Number(birthYearInput.value);
+  const currentYear = new Date().getFullYear();
+
+  // simple validation
+  if (username === "" || birthYearInput.value === "") {
+    showMessage(formMessage, "Please fill in both fields.", "error");
+    return;
+  }
+  if (birthYear < 1900 || birthYear > currentYear) {
+    showMessage(formMessage, "Birth year must be between 1900 and " + currentYear + ".", "error");
+    return;
+  }
+
+  userProfile.name = username;
+  userProfile.birthYear = birthYear;
+
+  renderProfile();
+  showMessage(formMessage, "Profile updated!", "success");
+  form.reset();
+});
+
+// ===== Part 3: DOM list manipulation =====
+
+const hobbyList = document.getElementById("hobbyList");
+const newItemInput = document.getElementById("newItem");
+const addBtn = document.getElementById("addBtn");
+const removeBtn = document.getElementById("removeBtn");
+const listMessage = document.getElementById("listMessage");
+
+// Builds the <ul> from the hobbies array
+function renderList() {
+  hobbyList.innerHTML = "";
+  userProfile.hobbies.forEach(function (hobby) {
+    const li = document.createElement("li");
+    li.textContent = hobby;
+    hobbyList.appendChild(li);
+  });
+}
+
+// Task 5: add a new <li>
+addBtn.addEventListener("click", function () {
+  const text = newItemInput.value.trim();
+
+  if (text === "") {
+    showMessage(listMessage, "Enter some text first.", "error");
+    return;
+  }
+
+  const li = document.createElement("li");
+  li.textContent = text;
+  hobbyList.appendChild(li);
+
+  userProfile.hobbies.push(text);
+  hobbiesEl.textContent = userProfile.hobbies.length;
+
+  newItemInput.value = "";
+  showMessage(listMessage, "Item added.", "success");
+});
+
+// Task 5: remove the last <li>
+removeBtn.addEventListener("click", function () {
+  if (hobbyList.lastElementChild === null) {
+    showMessage(listMessage, "The list is already empty.", "error");
+    return;
+  }
+
+  hobbyList.removeChild(hobbyList.lastElementChild);
+
+  userProfile.hobbies.pop();
+  hobbiesEl.textContent = userProfile.hobbies.length;
+
+  showMessage(listMessage, "Last item removed.", "success");
+});
+
+// ===== Helper =====
+function showMessage(element, text, type) {
+  element.textContent = text;
+  element.className = "message " + type;
+}
+
+// ===== Initial render =====
+renderProfile();
+renderList();
+</script>
+</body>
+</html>
